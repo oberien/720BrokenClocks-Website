@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>720 Broken Clocks</title>
+    <style>
+      body {
+          background-color: #1c1c1c;
+        }
+
+      .highlighted {
+          filter: contrast(160%);
+          filter: brightness(160%);
+      }
+    </style>
+  </head>
+
+<body>
+  <div id="everything"></div>
+
+<script>
+const everything = document.getElementById("everything");
+let lastHighlighted;
+
+const clocks = [];
+for (let hour = 0; hour < 12; hour++) {
+  for (let minute = 0; minute < 60; minute++) {
+    clocks.push([pad(hour), pad(minute)]);
+  }
+}
+clocks.sort(_ => Math.random() - 0.5);
+
+for (const [hour, minute] of clocks) {
+  const img = new Image();
+  img.src = `clocks/${hour}:${minute}.png`;
+  img.id = `h${hour}${minute}`;
+  img.style.position = "absolute";
+  everything.appendChild(img);
+}
+resize();
+highlight(new Date());
+
+window.addEventListener("resize", resize);
+
+function highlight(date) {
+  const hour = pad(date.getHours() % 12);
+  const minute = pad(date.getMinutes());
+  const id = `h${hour}${minute}`
+  const toHighlight = document.getElementById(id);
+  if (lastHighlighted == toHighlight) {
+    return;
+  }
+  if (lastHighlighted) {
+    lastHighlighted.classList.remove("highlighted");
+  }
+  toHighlight.classList.add("highlighted");
+  lastHighlighted = toHighlight;
+
+  date = new Date();
+  setTimeout(() => highlight(new Date(date.getTime() + 60000)), 60000 - (date.getSeconds() * 1000 + date.getMilliseconds()));
+}
+function pad(number) {
+  return number.toString().padStart(2, "0");
+}
+function resize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const size = imageSize(w, h, 720) | 0;
+  const columns = w / size | 0;
+  for (const [i, img] of [...everything.children].entries()) {
+    const column = i % columns;
+    const row = (i / columns) | 0;
+    img.style.width = `${size}px`;
+    img.style.height = `${size}px`;
+    img.style.left = `${column * size}px`;
+    img.style.top = `${row * size}px`;
+  }
+}
+// https://stackoverflow.com/a/47337678
+function imageSize(w,h,n) {
+  let sw, sh;
+  const pw = Math.ceil(Math.sqrt(n*w/h));
+  if (Math.floor(pw*h/w)*pw < n) sw = h/Math.ceil(pw*h/w);
+    else sw = w/pw;
+  const ph = Math.ceil(Math.sqrt(n*h/w));
+  if (Math.floor(ph*w/h)*ph < n) sh = w/Math.ceil(w*ph/h);
+    else sh = h/ph;
+  return Math.max(sw,sh);
+}
+</script>
+</body>
+</html>
